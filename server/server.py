@@ -55,12 +55,19 @@ class MyServerProtocol(WebSocketServerProtocol):
         def direction(data):
             currentPlayer = self.players_vec[data['position']]
             currentPlayer['direction'] = data['direction']
+            
+        
+        # Machine learn direction
+        def  ml_direction(data):
+            print 'game-state received'
+        
         
         # Available messages types
         options = {
             'waiting' : waiting,
             'want-to-play' : want_to_play,
-            'direction' : direction
+            'direction' : direction,
+            'game-state': ml_direction
         }
         
         # Launch the proper action
