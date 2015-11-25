@@ -1,5 +1,5 @@
-Prototype Pacman
-================
+Prototype Pacman SERVER
+=======================
 
 Python server to support [prototypePacman](https://github.com/jvalen/prototypePacman) multiplayer and machine learning modes.
 
@@ -29,7 +29,7 @@ All players will play in the same screen where [prototypePacman](https://github.
 
 Define **onOpen** method to send the first message to [prototypePacman](https://github.com/jvalen/prototypePacman) and start the communication.
 ```python
-  def onOpen(self):
+def onOpen(self):
 
 ```
 
