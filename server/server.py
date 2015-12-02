@@ -8,29 +8,35 @@ class MyServerProtocol(WebSocketServerProtocol):
 
     def onConnect(self, request):
         print("Client connecting: {0}".format(request.peer))
-        
+
     def onOpen(self):
         print("WebSocket connection open.")
-        
+
     def onMessage(self, payload, isBinary):
         # Get the data
         data = json.loads(payload.decode('utf8'))
-    
+
+        # Restart
+        def restart(data):
+            del self.players_vec[:]
+            del self.game_config[:]
+            print("Players and game data reset.")
+
         # Waiting for players
         def waiting(data):
             if not self.game_config:
                 self.game_config.append(data['playersSetup'])
-            
+
             #Send the current players information
             self.sendMessage(json.dumps(self.players_vec, ensure_ascii = False).encode('utf8'), isBinary)
-            
+
         # Player ask to join the game
         def want_to_play(data):
-            # If we have game data and there is still room the other player 
+            # If we have game data and there is still room the other player
             if self.game_config and (len(self.players_vec) < self.game_config[0]['maxPlayers']):
                 game_setup = self.game_config[0]
                 main_player = [i for i in self.players_vec if i['role'] == 'player']
-                
+
                 # Generate properties for the current player (main player or ghosts)
                 name = data['name']
                 if len(main_player) > 0:
@@ -50,29 +56,30 @@ class MyServerProtocol(WebSocketServerProtocol):
 
                 # Send the assigned player info back
                 self.sendMessage(json.dumps(self.players_vec[position], ensure_ascii = False).encode('utf8'), isBinary)
-                            
+
         # Player send direction
         def direction(data):
             currentPlayer = self.players_vec[data['position']]
             currentPlayer['direction'] = data['direction']
-            
-        
+
+
         # Machine learn direction
         def  ml_direction(data):
             print 'game-state received'
-        
-        
+
+
         # Available messages types
         options = {
             'waiting' : waiting,
             'want-to-play' : want_to_play,
             'direction' : direction,
-            'game-state': ml_direction
+            'game-state': ml_direction,
+            'restart': restart
         }
-        
+
         # Launch the proper action
         options[data['action']](data)
-                      
+
     def onClose(self, wasClean, code, reason):
         if code == 1000:
             # Remove data of player who close the connection
@@ -81,6 +88,7 @@ class MyServerProtocol(WebSocketServerProtocol):
                 aux = [i for i in self.players_vec if i['position'] == int(reason)]
                 self.players_vec.remove(aux[0])
         else:
+            del self.players_vec[:]
             print 'Bad attempt to close the connection'
         print("WebSocket connection closed: {0}".format(reason))
 
